@@ -21,7 +21,7 @@ QA_SYSTEM_PROMPT = (
     "often write in Banglish (Bengali written with English letters), mixed "
     "with English and Bengali script. Understand Banglish naturally. Reply "
     "concisely (a few sentences max unless asked for detail), in the same "
-    "language style the user asked in (Banglish/English/Bengali)."
+    "language style the user asked in (Bangli
 )
 
 MODERATION_PROMPT = (
