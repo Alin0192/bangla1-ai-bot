@@ -83,6 +83,36 @@ def contains_bad_word(text: str) -> str | None:
     return None
 
 
+QUESTION_WORDS = {
+    # English
+    "what", "why", "how", "when", "where", "who", "which", "whose",
+    "is", "are", "was", "were", "do", "does", "did", "can", "could",
+    "would", "will", "should", "may",
+    # Banglish (Bengali written in Latin letters)
+    "ki", "kn", "keno", "kano", "kivabe", "kibhabe", "kemne", "kokhon",
+    "kobe", "kothay", "kothae", "ke", "kar", "kader", "koto", "kotota",
+    "naki", "acho", "achen", "korbe", "korba", "korish", "korbi",
+}
+
+# Bengali-script question words
+BANGLA_QUESTION_WORDS = {"কি", "কেন", "কিভাবে", "কবে", "কোথায়", "কে", "কার", "কত"}
+
+
+def looks_like_question(text: str) -> bool:
+    if not text:
+        return False
+    stripped = text.strip()
+    if stripped.endswith("?") or stripped.endswith("؟"):
+        return True
+    words = re.findall(r"[a-zA-Z\u0980-\u09FF]+", stripped.lower())
+    if not words:
+        return False
+    first_word = words[0]
+    if first_word in QUESTION_WORDS or first_word in BANGLA_QUESTION_WORDS:
+        return True
+    return any(w in BANGLA_QUESTION_WORDS for w in words)
+
+
 def is_spammy_text(text: str) -> bool:
     if not text:
         return False
