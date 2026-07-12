@@ -5,16 +5,22 @@ ai.py — thin wrapper around Google Gemini (free tier) for:
 
 Get a free API key at https://aistudio.google.com/apikey and set it as the
 GEMINI_API_KEY environment variable.
+
+Uses Google's current "google-genai" SDK (the older "google-generativeai"
+package is deprecated). Model names use the "-latest" alias so this keeps
+working automatically as Google upgrades its models, instead of needing a
+code update every time a specific model version gets retired.
 """
 
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-genai.configure(api_key=GEMINI_API_KEY)
+_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
-TEXT_MODEL = "gemini-2.5-flash"
-VISION_MODEL = "gemini-2.5-flash"
+TEXT_MODEL = "gemini-flash-latest"
+VISION_MODEL = "gemini-flash-latest"
 
 QA_SYSTEM_PROMPT = (
     "You are a helpful assistant inside a Telegram group chat where members "
@@ -33,11 +39,14 @@ MODERATION_PROMPT = (
 
 
 def ask_ai(question: str) -> str:
-    if not GEMINI_API_KEY:
+    if not _client:
         return "AI isn't configured yet — ask the group admin to set GEMINI_API_KEY."
-    model = genai.GenerativeModel(TEXT_MODEL, system_instruction=QA_SYSTEM_PROMPT)
     try:
-        resp = model.generate_content(question)
+        resp = _client.models.generate_content(
+            model=TEXT_MODEL,
+            contents=question,
+            config=types.GenerateContentConfig(system_instruction=QA_SYSTEM_PROMPT),
+        )
         return (resp.text or "").strip() or "Sorry, I couldn't come up with an answer."
     except Exception as e:
         return f"AI error: {e}"
@@ -45,15 +54,15 @@ def ask_ai(question: str) -> str:
 
 def is_image_unsafe(image_bytes: bytes, mime_type: str = "image/jpeg") -> bool:
     """Returns True if the image should be deleted."""
-    if not GEMINI_API_KEY:
+    if not _client:
         return False  # fail open — don't delete content if AI isn't configured
-    model = genai.GenerativeModel(VISION_MODEL)
     try:
-        resp = model.generate_content(
-            [
+        resp = _client.models.generate_content(
+            model=VISION_MODEL,
+            contents=[
                 MODERATION_PROMPT,
-                {"mime_type": mime_type, "data": image_bytes},
-            ]
+                types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+            ],
         )
         verdict = (resp.text or "").strip().upper()
         return "UNSAFE" in verdict
