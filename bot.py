@@ -213,7 +213,14 @@ async def moderate_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         return
 
-    # 3) Photos / videos — AI moderation
+    # 3) Auto-answer questions (no /ask needed)
+    if message.text and moderation.looks_like_question(message.text):
+        await context.bot.send_chat_action(chat_id, "typing")
+        answer = ai.ask_ai(message.text)
+        await message.reply_text(answer)
+        return
+
+    # 4) Photos / videos — AI moderation
     if message.photo or message.video:
         file = None
         mime = "image/jpeg"
