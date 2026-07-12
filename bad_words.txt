@@ -1,7 +1,0 @@
-# One root word per line, lowercase, no spaces or symbols.
-# The bot automatically catches obfuscated spellings of whatever you list
-# here (extra symbols/numbers between letters, e.g. "c##" style spacing),
-# so you only need the base word, not every variant.
-#
-# This file ships empty on purpose — add your own group's Banglish/Bangla
-# slang below (romanized is fine, e.g. "magi", "khanki", "chuda", etc.)
